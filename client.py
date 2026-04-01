@@ -7,7 +7,8 @@ def main():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((SERVER_HOST, SERVER_PORT))
 
-    print(f"Connected to server at {SERVER_HOST}:{SERVER_PORT}")
+    message = input("Enter a message: ")
+    client_socket.send(message.encode("utf-8"))
 
     client_socket.close()
 
