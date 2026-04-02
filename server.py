@@ -16,7 +16,16 @@ def main():
         print(f"Accepted connection from {client_address}")
 
         message = client_socket.recv(BUFFER_SIZE).decode("utf-8")
-        print(f"Received from {client_address}: {message}")
+        username = message
+        print(f"{username} has joined")
+
+        while True:
+            message = client_socket.recv(BUFFER_SIZE).decode("utf-8")
+            if not message:
+                break
+            print(f"{username}: {message}")
+
+        print(f"{username} has disconnected")
 
         client_socket.close()
 
