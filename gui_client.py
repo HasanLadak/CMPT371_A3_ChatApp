@@ -1,5 +1,6 @@
 import socket
 import tkinter as tk
+import threading
 
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
@@ -18,9 +19,24 @@ def send_message():
     entry.delete(0, "end")
     client_socket.send(message.encode("utf-8"))
 
+def receive_messages():
+    while True:
+        try:
+            message = client_socket.recv(1024).decode("utf-8")
+            if message:
+                chat_box.config(state="normal")
+                chat_box.insert("end", f"{message}\n")
+                chat_box.config(state="disabled")
+                chat_box.yview("end")
+        except:
+            break
+
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((SERVER_HOST, SERVER_PORT))
 client_socket.send(USERNAME.encode("utf-8"))
+
+thread = threading.Thread(target=receive_messages, daemon=True)
+thread.start()
 
 root = tk.Tk()
 root.title("ChatApp")

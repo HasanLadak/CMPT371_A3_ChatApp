@@ -4,9 +4,16 @@ import threading
 HOST = "0.0.0.0"
 PORT = 5000
 BUFFER_SIZE = 1024
+clients = []
+
+def broadcast(message, sender_socket):
+    for client_socket, username in clients:
+        if client_socket != sender_socket:
+            client_socket.send(message.encode("utf-8"))
 
 def handle_client(client_socket, client_address):
     username = client_socket.recv(BUFFER_SIZE).decode("utf-8")
+    clients.append((client_socket, username))
     print(f"{username} has joined")
 
     while True:
@@ -14,7 +21,9 @@ def handle_client(client_socket, client_address):
         if not message:
             break
         print(f"{username}: {message}")
+        broadcast(f"{username}: {message}", client_socket)
 
+    clients.remove((client_socket, username))
     print(f"{username} has disconnected")
     client_socket.close()
 
