@@ -11,6 +11,11 @@ root_temp.withdraw()
 USERNAME = simpledialog.askstring("Username", "Enter your username:", parent=root_temp)
 root_temp.destroy()
 
+def get_user_color(username):
+    colors = ["#e05555", "#e09a55", "#55e09a", "#559ae0", "#a055e0", "#e055c8", "#55e0d4", "#e0d455"]
+    index = sum(ord(c) for c in username) % len(colors)
+    return colors[index]
+
 def add_bubble(message, bubble_type):
     row = tk.Frame(messages_frame, bg="#1e2024")
     row.pack(fill="x", padx=10, pady=2)
@@ -24,10 +29,18 @@ def add_bubble(message, bubble_type):
         tk.Label(bubble, text=message, bg="#4a90d9", fg="white",
                  font=("Helvetica", 12), wraplength=300).pack()
     else:
+        if ":" in message:
+            username, text = message.split(":", 1)
+        else:
+            username, text = "", message
+
         bubble = tk.Frame(row, bg="#2e3138", padx=10, pady=6)
         bubble.pack(side="left")
-        tk.Label(bubble, text=message, bg="#2e3138", fg="#e8e9ec",
-                 font=("Helvetica", 12), wraplength=300).pack()
+
+        tk.Label(bubble, text=username, bg="#2e3138", fg=get_user_color(username),
+                font=("Helvetica", 12, "bold")).pack(anchor="w")
+        tk.Label(bubble, text=text.strip(), bg="#2e3138", fg="#e8e9ec",
+                font=("Helvetica", 12), wraplength=300).pack(anchor="w")
 
     messages_frame.update_idletasks()
     canvas.configure(scrollregion=canvas.bbox("all"))
