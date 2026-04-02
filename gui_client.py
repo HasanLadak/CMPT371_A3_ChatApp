@@ -67,6 +67,7 @@ def receive_messages():
         except:
             break
 
+
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((SERVER_HOST, SERVER_PORT))
 client_socket.send(USERNAME.encode("utf-8"))
@@ -78,6 +79,16 @@ root = tk.Tk()
 root.title("ChatApp")
 root.geometry("500x400")
 root.configure(bg="#1e2024")
+
+header = tk.Frame(root, bg="#16171a", height=50)
+header.pack(fill="x")
+header.pack_propagate(False)
+
+tk.Label(header, text="💬  ChatApp", bg="#16171a", fg="#e8e9ec",
+         font=("Helvetica", 14, "bold")).pack(side="left", padx=16)
+
+tk.Label(header, text=f"● Connected as {USERNAME}", bg="#16171a", fg="#55e09a",
+         font=("Helvetica", 10)).pack(side="right", padx=16)
 
 canvas = tk.Canvas(root, bg="#1e2024", bd=0, highlightthickness=0)
 scrollbar = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
@@ -99,7 +110,19 @@ entry = tk.Entry(bar, bg="#2a2d32", fg="#e8e9ec", font=("Helvetica", 12),
 entry.pack(side="left", fill="x", expand=True, padx=8, pady=8)
 entry.bind("<Return>", lambda e: send_message())
 
+def on_close():
+    try:
+        client_socket.close()
+    except:
+        pass
+    root.destroy()
+
+root.protocol("WM_DELETE_WINDOW", on_close)
+
+tk.Button(bar, text="Leave", bg="#e05555", fg="white", relief="flat",
+          font=("Helvetica", 11), padx=12, command=on_close).pack(side="right", padx=(0, 8))
 tk.Button(bar, text="Send", bg="#4a90d9", fg="white", relief="flat",
           font=("Helvetica", 11), padx=12, command=send_message).pack(side="right", padx=(0, 8))
+
 
 root.mainloop()

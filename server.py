@@ -18,11 +18,14 @@ def handle_client(client_socket, client_address):
     print(f"{username} has joined")
 
     while True:
-        message = client_socket.recv(BUFFER_SIZE).decode("utf-8")
-        if not message:
+        try:
+            message = client_socket.recv(BUFFER_SIZE).decode("utf-8")
+            if not message:
+                break
+            print(f"{username}: {message}")
+            broadcast(f"{username}: {message}", client_socket)
+        except:
             break
-        print(f"{username}: {message}")
-        broadcast(f"{username}: {message}", client_socket)
 
     clients.remove((client_socket, username))
     broadcast(f"[{username} has left the chat]", None)
