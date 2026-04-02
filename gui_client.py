@@ -129,26 +129,28 @@ def send_message():
 
     add_bubble(f"You: {message}", "self")
     entry.delete(0, "end")
-    client_socket.send(message.encode("utf-8"))
+    client_socket.sendall((message + "\n").encode("utf-8"))
 
 def receive_messages():
     while True:
         try:
-            message = client_socket.recv(1024).decode("utf-8")
-            if message:
-                if message.startswith("["):
-                    root.after(0, add_bubble, message, "system")
-                else:
-                    root.after(0, add_bubble, message, "other")
+            data = client_socket.recv(4096).decode("utf-8")
+            if data:
+                messages = data.strip().split("\n")
+                for message in messages:
+                    message = message.strip()
+                    if not message:
+                        continue
+                    if message.startswith("["):
+                        root.after(0, add_bubble, message, "system")
+                    else:
+                        root.after(0, add_bubble, message, "other")
         except:
             break
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((SERVER_HOST, SERVER_PORT))
-client_socket.send(USERNAME.encode("utf-8"))
-
-thread = threading.Thread(target=receive_messages, daemon=True)
-thread.start()
+client_socket.sendall((USERNAME + "\n").encode("utf-8"))
 
 root = tk.Tk()
 root.title("ChatApp")
@@ -198,5 +200,8 @@ tk.Button(bar, text="Leave", bg="#e05555", fg="white", relief="flat",
           font=("Helvetica", 11), padx=12, command=on_close).pack(side="right", padx=(0, 8))
 tk.Button(bar, text="Send", bg="#4a90d9", fg="white", relief="flat",
           font=("Helvetica", 11), padx=12, command=send_message).pack(side="right", padx=(0, 8))
+
+thread = threading.Thread(target=receive_messages, daemon=True)
+thread.start()
 
 root.mainloop()
