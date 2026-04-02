@@ -1,6 +1,5 @@
 import socket
 import tkinter as tk
-import time
 
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
@@ -17,18 +16,11 @@ def send_message():
     chat_box.yview("end")
 
     entry.delete(0, "end")
+    client_socket.send(message.encode("utf-8"))
 
-    try:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((SERVER_HOST, SERVER_PORT))
-        client_socket.send(USERNAME.encode("utf-8"))
-        time.sleep(0.1)
-        client_socket.send(message.encode("utf-8"))
-        client_socket.close()
-    except Exception as e:
-        chat_box.config(state="normal")
-        chat_box.insert("end", f"[Error]: {e}\n")
-        chat_box.config(state="disabled")
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((SERVER_HOST, SERVER_PORT))
+client_socket.send(USERNAME.encode("utf-8"))
 
 root = tk.Tk()
 root.title("ChatApp")
