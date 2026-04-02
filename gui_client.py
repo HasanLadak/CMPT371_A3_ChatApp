@@ -1,10 +1,14 @@
 import socket
 import tkinter as tk
+from tkinter import simpledialog
 import threading
 
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
-USERNAME = "Hadi"
+root_temp = tk.Tk()
+root_temp.withdraw()  # hide the main window temporarily
+USERNAME = tk.simpledialog.askstring("Username", "Enter your username:", parent=root_temp)
+root_temp.destroy()
 
 def send_message():
     message = entry.get().strip()
@@ -25,7 +29,10 @@ def receive_messages():
             message = client_socket.recv(1024).decode("utf-8")
             if message:
                 chat_box.config(state="normal")
-                chat_box.insert("end", f"{message}\n")
+                if message.startswith("["):
+                    chat_box.insert("end", f"{message}\n", "system")
+                else:
+                    chat_box.insert("end", f"{message}\n")
                 chat_box.config(state="disabled")
                 chat_box.yview("end")
         except:
@@ -46,6 +53,7 @@ root.configure(bg="#1e2024")
 chat_box = tk.Text(root, state="disabled", bg="#1e2024", fg="#e8e9ec",
                    font=("Helvetica", 12), relief="flat", padx=10, pady=10)
 chat_box.pack(fill="both", expand=True, padx=10, pady=(10, 0))
+chat_box.tag_config("system", foreground="#8b8fa8")
 
 bar = tk.Frame(root, bg="#2a2d32")
 bar.pack(fill="x", padx=10, pady=10)

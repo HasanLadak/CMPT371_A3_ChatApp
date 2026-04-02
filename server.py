@@ -14,6 +14,7 @@ def broadcast(message, sender_socket):
 def handle_client(client_socket, client_address):
     username = client_socket.recv(BUFFER_SIZE).decode("utf-8")
     clients.append((client_socket, username))
+    broadcast(f"[{username} has joined the chat]", client_socket)
     print(f"{username} has joined")
 
     while True:
@@ -24,6 +25,7 @@ def handle_client(client_socket, client_address):
         broadcast(f"{username}: {message}", client_socket)
 
     clients.remove((client_socket, username))
+    broadcast(f"[{username} has left the chat]", None)
     print(f"{username} has disconnected")
     client_socket.close()
 
