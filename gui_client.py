@@ -1,25 +1,44 @@
 import socket
 import tkinter as tk
-from tkinter import simpledialog
 import threading
+from tkinter import simpledialog
 
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
+
 root_temp = tk.Tk()
-root_temp.withdraw()  # hide the main window temporarily
-USERNAME = tk.simpledialog.askstring("Username", "Enter your username:", parent=root_temp)
+root_temp.withdraw()
+USERNAME = simpledialog.askstring("Username", "Enter your username:", parent=root_temp)
 root_temp.destroy()
+
+def add_bubble(message, bubble_type):
+    row = tk.Frame(messages_frame, bg="#1e2024")
+    row.pack(fill="x", padx=10, pady=2)
+
+    if bubble_type == "system":
+        tk.Label(row, text=message, bg="#1e2024", fg="#8b8fa8",
+                 font=("Helvetica", 10)).pack()
+    elif bubble_type == "self":
+        bubble = tk.Frame(row, bg="#4a90d9", padx=10, pady=6)
+        bubble.pack(side="right")
+        tk.Label(bubble, text=message, bg="#4a90d9", fg="white",
+                 font=("Helvetica", 12), wraplength=300).pack()
+    else:
+        bubble = tk.Frame(row, bg="#2e3138", padx=10, pady=6)
+        bubble.pack(side="left")
+        tk.Label(bubble, text=message, bg="#2e3138", fg="#e8e9ec",
+                 font=("Helvetica", 12), wraplength=300).pack()
+
+    messages_frame.update_idletasks()
+    canvas.configure(scrollregion=canvas.bbox("all"))
+    canvas.yview_moveto(1.0)
 
 def send_message():
     message = entry.get().strip()
     if not message:
         return
 
-    chat_box.config(state="normal")
-    chat_box.insert("end", f"You: {message}\n")
-    chat_box.config(state="disabled")
-    chat_box.yview("end")
-
+    add_bubble(f"You: {message}", "self")
     entry.delete(0, "end")
     client_socket.send(message.encode("utf-8"))
 
@@ -28,13 +47,10 @@ def receive_messages():
         try:
             message = client_socket.recv(1024).decode("utf-8")
             if message:
-                chat_box.config(state="normal")
                 if message.startswith("["):
-                    chat_box.insert("end", f"{message}\n", "system")
+                    root.after(0, add_bubble, message, "system")
                 else:
-                    chat_box.insert("end", f"{message}\n")
-                chat_box.config(state="disabled")
-                chat_box.yview("end")
+                    root.after(0, add_bubble, message, "other")
         except:
             break
 
@@ -50,10 +66,17 @@ root.title("ChatApp")
 root.geometry("500x400")
 root.configure(bg="#1e2024")
 
-chat_box = tk.Text(root, state="disabled", bg="#1e2024", fg="#e8e9ec",
-                   font=("Helvetica", 12), relief="flat", padx=10, pady=10)
-chat_box.pack(fill="both", expand=True, padx=10, pady=(10, 0))
-chat_box.tag_config("system", foreground="#8b8fa8")
+canvas = tk.Canvas(root, bg="#1e2024", bd=0, highlightthickness=0)
+scrollbar = tk.Scrollbar(root, orient="vertical", command=canvas.yview)
+canvas.configure(yscrollcommand=scrollbar.set)
+scrollbar.pack(side="right", fill="y")
+canvas.pack(fill="both", expand=True)
+
+messages_frame = tk.Frame(canvas, bg="#1e2024")
+canvas_window = canvas.create_window((0, 0), window=messages_frame, anchor="nw")
+
+canvas.bind("<Configure>", lambda e: canvas.itemconfig(canvas_window, width=e.width))
+canvas.bind_all("<MouseWheel>", lambda e: canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
 
 bar = tk.Frame(root, bg="#2a2d32")
 bar.pack(fill="x", padx=10, pady=10)
