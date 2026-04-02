@@ -11,6 +11,12 @@ def broadcast(message, sender_socket):
         if client_socket != sender_socket:
             client_socket.send(message.encode("utf-8"))
 
+def send_private_message(client_socket, message):
+    try:
+        client_socket.send(message.encode("utf-8"))
+    except:
+        pass
+
 def handle_client(client_socket, client_address):
     username = client_socket.recv(BUFFER_SIZE).decode("utf-8")
     clients.append((client_socket, username))
@@ -22,6 +28,12 @@ def handle_client(client_socket, client_address):
             message = client_socket.recv(BUFFER_SIZE).decode("utf-8")
             if not message:
                 break
+            if message.strip() == "/users":
+                online_users = [user for sock, user in clients]
+                users_message = "[Online users: " + ", ".join(online_users) + "]"
+                send_private_message(client_socket, users_message)
+                continue
+
             print(f"{username}: {message}")
             broadcast(f"{username}: {message}", client_socket)
         except:
