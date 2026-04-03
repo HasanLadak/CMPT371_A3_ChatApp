@@ -6,7 +6,6 @@ SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
 
 def show_username_dialog():
-    """Show a custom styled username dialog and return the entered username."""
     dialog = tk.Tk()
     dialog.title("Join Chat")
     dialog.geometry("360x240")

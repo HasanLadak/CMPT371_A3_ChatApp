@@ -48,6 +48,7 @@ def handle_client(client_socket, client_address):
 
         print(f"{username} has joined")
         send_chat_history(client_socket)
+        send_private_message(client_socket, "[You joined the chat]")
         broadcast(f"[{username} has joined the chat]", client_socket)
 
         while True:
