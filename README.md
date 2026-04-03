@@ -21,19 +21,23 @@ The application follows a client-server architecture where a central server mana
 ## 2. System Limitations & Edge Cases
 
 **Handling Multiple Clients Concurrently:**
+
 Solution: We used Python’s threading module. Each client connection is handled in a separate thread, allowing multiple users to chat simultaneously.
 
 Limitation: Thread creation depends on system resources. This approach is not scalable for very large numbers of users. A production system would use asynchronous I/O or thread pools.
 
 **TCP Stream Buffering:**
+
 Solution: Since TCP is a continuous byte stream, multiple messages can arrive combined. To handle this, we append a newline character `\n` to each message and split incoming data using this delimiter.
 
 Limitation: Extremely large messages could theoretically still be split across two `recv()` calls. A full solution would require a persistent buffer, but for our use case the newline delimiter works reliably.
 
 **No Message Encryption:**
+
 We did not implement any encryption (e.g. TLS) in our application. Messages are sent as plain text over TCP, so this chat app should not be used for sensitive communication.
 
 **Chat History Handling:**
+
 Solution: We store recent messages on the server and send them to newly connected users so they can see previous conversation context.
 
 Limitation: The chat history is stored only in memory and is lost when the server restarts.
@@ -77,10 +81,10 @@ Our username dialog will appear. Enter a username and click **Join Chat** or pre
 ### Step 4: Connect more clients
 Repeat Step 3 in additional terminal windows to simulate multiple users chatting at once.
 
-### Step 4: Start chatting
+### Step 5: Start chatting
 Type messages and press **Enter** or click **Send**
 
-Use '/users' to see currently connected users
+Use `/users` to see currently connected users
 
 Open multiple clients to simulate multiple users chatting together
 
