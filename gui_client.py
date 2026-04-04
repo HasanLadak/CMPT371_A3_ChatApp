@@ -1,3 +1,8 @@
+"""
+CMPT 371 A3: Multi-Client Chat Server
+Architecture: TCP sockets with multithreaded client handling.
+"""
+
 import socket
 import tkinter as tk
 import threading
@@ -6,6 +11,13 @@ SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
 
 def show_username_dialog():
+    """
+    Display a custom styled username dialog before connecting
+    We use our own dialog instead of tkinter's default simpledialog
+    to match the dark theme of the main chat window
+    Returns the entered username string, or None if the user cancelled
+    """
+
     dialog = tk.Tk()
     dialog.title("Join Chat")
     dialog.geometry("360x240")
@@ -81,27 +93,44 @@ def show_username_dialog():
 
 USERNAME = show_username_dialog()
 
+# If user closed the dialog without entering a name, exit the app
 if not USERNAME:
     exit()
 
 def get_user_color(username):
+    """
+    Assign a color to each username so the same user always shows up in the same color.
+    """
+
     colors = ["#e05555", "#e09a55", "#55e09a", "#559ae0", "#a055e0", "#e055c8", "#55e0d4", "#e0d455"]
     index = sum(ord(c) for c in username) % len(colors)
     return colors[index]
 
 def add_bubble(message, bubble_type):
+    """
+    Add a message in the chat window as a styled bubble.
+    bubble_type options:
+    - "system": grey centered text for join/leave/command notices
+    - "self":   blue bubble on the right for our own messages
+    - "other":  dark bubble on the left for other users' messages
+    """
+
     row = tk.Frame(messages_frame, bg="#1e2024")
     row.pack(fill="x", padx=10, pady=2)
 
     if bubble_type == "system":
+        # System messages like [Hasan has joined the chat]
         tk.Label(row, text=message, bg="#1e2024", fg="#8b8fa8",
                  font=("Helvetica", 10)).pack()
     elif bubble_type == "self":
+        # Our own messages shown on the right side in blue
         bubble = tk.Frame(row, bg="#4a90d9", padx=10, pady=6)
         bubble.pack(side="right")
         tk.Label(bubble, text=message, bg="#4a90d9", fg="white",
                  font=("Helvetica", 12), wraplength=300).pack()
     else:
+        # other users' messages arrive as "username: text"
+        # we split on the first colon to separate the name from the content
         if ":" in message:
             username, text = message.split(":", 1)
         else:
@@ -110,6 +139,7 @@ def add_bubble(message, bubble_type):
         bubble = tk.Frame(row, bg="#2e3138", padx=10, pady=6)
         bubble.pack(side="left")
 
+        # Username shown in their assigned color for quick visual identification
         tk.Label(bubble, text=username, bg="#2e3138",
                  fg=get_user_color(username),
                  font=("Helvetica", 12, "bold")).pack(anchor="w")
@@ -117,20 +147,33 @@ def add_bubble(message, bubble_type):
         tk.Label(bubble, text=text.strip(), bg="#2e3138", fg="#e8e9ec",
                  font=("Helvetica", 12), wraplength=300).pack(anchor="w")
 
+    # Keep the chat view pinned to the newest message
     messages_frame.update_idletasks()
     canvas.configure(scrollregion=canvas.bbox("all"))
     canvas.yview_moveto(1.0)
 
 def send_message():
+    """
+    Read the input field, display the message locally as a self bubble,
+    and send it to the server
+    """
+        
     message = entry.get().strip()
     if not message:
         return
 
     add_bubble(f"You: {message}", "self")
     entry.delete(0, "end")
+
+    # Append \n so the server knows where this message ends
     client_socket.sendall((message + "\n").encode("utf-8"))
 
 def receive_messages():
+    """
+    Background receive loop
+    Splits incoming data on newline boundaries to process complete messages
+    """
+
     while True:
         try:
             data = client_socket.recv(4096).decode("utf-8")
@@ -140,6 +183,7 @@ def receive_messages():
                     message = message.strip()
                     if not message:
                         continue
+                    # System messages are wrapped in square brackets
                     if message.startswith("["):
                         root.after(0, add_bubble, message, "system")
                     else:
@@ -147,15 +191,18 @@ def receive_messages():
         except:
             break
 
+# Connect to server and send username as the handshake first message
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((SERVER_HOST, SERVER_PORT))
 client_socket.sendall((USERNAME + "\n").encode("utf-8"))
 
+# Build the main chat window before starting the receive thread
 root = tk.Tk()
 root.title("ChatApp")
 root.geometry("500x400")
 root.configure(bg="#1e2024")
 
+# Header bar showing app name and current username
 header = tk.Frame(root, bg="#16171a", height=50)
 header.pack(fill="x")
 header.pack_propagate(False)
@@ -187,6 +234,10 @@ entry.pack(side="left", fill="x", expand=True, padx=8, pady=8)
 entry.bind("<Return>", lambda e: send_message())
 
 def on_close():
+    """
+    Close the socket and destroy the GUI window
+    """
+
     try:
         client_socket.close()
     except:
@@ -200,6 +251,7 @@ tk.Button(bar, text="Leave", bg="#e05555", fg="white", relief="flat",
 tk.Button(bar, text="Send", bg="#4a90d9", fg="white", relief="flat",
           font=("Helvetica", 11), padx=12, command=send_message).pack(side="right", padx=(0, 8))
 
+# Start the receive thread after root is created
 thread = threading.Thread(target=receive_messages, daemon=True)
 thread.start()
 
