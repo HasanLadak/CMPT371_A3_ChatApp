@@ -6,6 +6,7 @@ Architecture: TCP sockets with multithreaded client handling.
 import socket
 import tkinter as tk
 import threading
+import ssl
 
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
@@ -191,9 +192,19 @@ def receive_messages():
         except:
             break
 
-# Connect to server and send username as the handshake first message
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# Create a client SSL context
+# We disable certificate verification because we use a self-signed cert
+context = ssl.create_default_context()
+context.check_hostname = False
+context.verify_mode = ssl.CERT_NONE
+
+raw_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+# Wrap before connecting - TLS handshake happens during connect()
+client_socket = context.wrap_socket(raw_socket, server_hostname=SERVER_HOST)
 client_socket.connect((SERVER_HOST, SERVER_PORT))
+
+# First message after TLS handshake is always the username
 client_socket.sendall((USERNAME + "\n").encode("utf-8"))
 
 # Build the main chat window before starting the receive thread

@@ -5,6 +5,7 @@ Architecture: TCP sockets with multithreaded client handling
 
 import socket
 import threading
+import ssl
 
 # Server configuration 
 HOST = "0.0.0.0" # bind to all interfaces so clients on the network can connect
@@ -137,23 +138,34 @@ def main():
     Accepts incoming TCP connections and spawns one thread per client
     """
 
+    # Load our certificate and private key
+    # The certificate is sent to clients during the handshake to identify the server
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(certfile="server.crt", keyfile="server.key")
+
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((HOST, PORT))
     server_socket.listen()
 
-    print(f"Server is listening on {HOST}:{PORT}")
+    print(f"TLS server is listening on {HOST}:{PORT}")
 
     while True:
-        # Block until a client connects, then hand them off to a dedicated thread
+        # Accept the raw TCP connection first
         client_socket, client_address = server_socket.accept()
-        print(f"Accepted connection from {client_address}")
 
-        thread = threading.Thread(
-            target=handle_client,
-            args=(client_socket, client_address)
-        )
-        thread.start()
+        try:
+            # Wrap the accepted TCP socket with TLS for secure communication
+            secure_client_socket = context.wrap_socket(client_socket, server_side=True)
 
+            thread = threading.Thread(
+                target=handle_client,
+                args=(secure_client_socket, client_address)
+            )
+            thread.start()
+
+        except:
+            client_socket.close()
+            
 
 if __name__ == "__main__":
     main()
