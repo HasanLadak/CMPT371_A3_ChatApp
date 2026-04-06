@@ -17,6 +17,7 @@ The application follows a client-server architecture where a central server mana
 - Message bubbles and user-specific colors
 - Join and leave notifications
 - Scrollable chat interface
+- TLS encryption for secure client-server communication
 
 ## 2. System Limitations & Edge Cases
 
@@ -32,9 +33,11 @@ Solution: Since TCP is a continuous byte stream, multiple messages can arrive co
 
 Limitation: Extremely large messages could theoretically still be split across two `recv()` calls. A full solution would require a persistent buffer, but for our use case the newline delimiter works reliably.
 
-**No Message Encryption:**
+**Encrypted Communication (TLS):**
 
-We did not implement any encryption (e.g. TLS) in our application. Messages are sent as plain text over TCP, so this chat app should not be used for sensitive communication.
+We implemented TLS (Transport Layer Security) to encrypt communication between the client and server. This ensures that all messages are encrypted in transit and cannot be easily intercepted on the network.
+
+Limitation: This is not end-to-end encryption, as the server can still read and forward all messages and we use a self-signed certificate with certificate verification disabled for local testing.
 
 **Chat History Handling:**
 
@@ -49,8 +52,8 @@ Limitation: The chat history is stored only in memory and is lost when the serve
 To run our application, you need:
 
 - Python 3.x
-- No external libraries required - uses Python standard library only (`socket`, `threading`, `tkinter`)
-
+- No external libraries required - uses Python standard library only (`socket`, `ssl`, `threading`, `tkinter`)
+- `server.crt` and `server.key` are included in the repo - no setup needed
 ## 5. Step-by-Step Run Guide
 
 ### Step 1: Clone the repository
@@ -67,7 +70,7 @@ python server.py
 
 You should see:
 ```
-Server is listening on 0.0.0.0:5000
+TLS Server is listening on 0.0.0.0:5000
 ```
 Keep this terminal open. Our server must be running before any clients connect.
 
@@ -122,3 +125,7 @@ Server → Client:
 - `[username joined]` (broadcast)  
 - `username: hello` (broadcast)  
 - `[Online users: ...]` (private response) 
+
+### Encryption
+
+All communication is encrypted using TLS. The server wraps each accepted connection with `ssl.wrap_socket()` using a self-signed certificate. The client wraps its socket with `ssl.create_default_context()` before connecting. Certificate verification is disabled on the client side since we use a self-signed cert.
