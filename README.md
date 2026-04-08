@@ -7,6 +7,7 @@
 ## 1. Project Overview & Description
 A real-time multi-client chat application built using Python's TCP socket API and tkinter for the GUI.
 The application follows a client-server architecture where a central server manages all connected clients and routes messages between them.
+We also enhanced the system by adding TLS encryption to secure communication between clients and the server.
 
 **Features**
 - Multiple clients can connect and chat simultaneously
@@ -46,7 +47,7 @@ Solution: We store recent messages on the server and send them to newly connecte
 Limitation: The chat history is stored only in memory and is lost when the server restarts.
 
 ## 3. Video Demo
-- Link to be added
+- [Watch Project Demo on Youtube](https://www.youtube.com/watch?v=z33Jbg3slIs)
 
 ## 4. Prerequisites (Fresh Environment)
 To run our application, you need:
@@ -54,11 +55,12 @@ To run our application, you need:
 - Python 3.x
 - No external libraries required - uses Python standard library only (`socket`, `ssl`, `threading`, `tkinter`)
 - `server.crt` and `server.key` are included in the repo - no setup needed
+
 ## 5. Step-by-Step Run Guide
 
 ### Step 1: Clone the repository
 ```bash
-git clone https://github.com/YOURUSERNAME/CMPT371_A3_ChatApp.git
+git clone https://github.com/HasanLadak/CMPT371_A3_ChatApp.git
 cd CMPT371_A3_ChatApp
 ```
 
@@ -70,7 +72,7 @@ python server.py
 
 You should see:
 ```
-TLS Server is listening on 0.0.0.0:5000
+TLS server is listening on 0.0.0.0:5000
 ```
 Keep this terminal open. Our server must be running before any clients connect.
 
@@ -128,4 +130,16 @@ Server → Client:
 
 ### Encryption
 
-All communication is encrypted using TLS. The server wraps each accepted connection with `ssl.wrap_socket()` using a self-signed certificate. The client wraps its socket with `ssl.create_default_context()` before connecting. Certificate verification is disabled on the client side since we use a self-signed cert.
+All communication is encrypted using TLS. The server wraps each accepted connection with `context.wrap_socket()` using a self-signed certificate. The client wraps its socket with `ssl.create_default_context()` before connecting. Certificate verification is disabled on the client side since we use a self-signed cert.
+
+## 7. Academic Integrity & References
+
+**Code Origin:**
+- We implemented the core application ourselves including the server architecture, multi-threading, client-server communication, and chat protocol.
+
+**GenAI Usage:**
+- We used Claude to assist with the tkinter GUI frontend design and to help with concepts for TLS encryption. 
+
+**References:**
+- [Python Socket Programming HOWTO](https://docs.python.org/3/howto/sockets.html)
+- [Real Python: Intro to Python Threading](https://realpython.com/intro-to-python-threading/)
