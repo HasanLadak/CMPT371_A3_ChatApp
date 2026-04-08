@@ -1,5 +1,5 @@
 """
-CMPT 371 A3: Multi-Client Chat Server
+CMPT 371 A3: Multi-Client Chat Client
 Architecture: TCP sockets with multithreaded client handling.
 """
 
@@ -199,7 +199,7 @@ context.check_hostname = False
 context.verify_mode = ssl.CERT_NONE
 
 raw_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
+
 # Wrap before connecting - TLS handshake happens during connect()
 client_socket = context.wrap_socket(raw_socket, server_hostname=SERVER_HOST)
 client_socket.connect((SERVER_HOST, SERVER_PORT))
